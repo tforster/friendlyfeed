@@ -1,0 +1,18 @@
+<!doctype html>
+<html id="background">
+
+<head>
+  <title>FriendlyFeed Background</title>
+</head>
+
+<body>
+  <p>This page runs in the background and is not seen. It is required so that we can load various scripts since Chrome does
+    not allow us to "require" separate modules.
+  </p>
+  <!-- build:js /app.js -->
+  <script src="/js/settingsClass.js"></script>
+  <script src="/js/app.js"></script>
+  <!-- endbuild -->
+</body>
+
+</html>

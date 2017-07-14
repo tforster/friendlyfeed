@@ -4,16 +4,22 @@ var del = require('del'),
   htmlmin = require('gulp-htmlmin'),
   minifyCss = require('gulp-minify-css'),
   rev = require('gulp-rev'),
-  uglify = require('gulp-uglify'),
   usemin = require('gulp-usemin'),
   util = require('gulp-util'),
-  watch = require('gulp-watch');
+  watch = require('gulp-watch'),
+  babili = require('gulp-babili'),
+  tinypng = require('gulp-tinypng');
+
 
 /**
  * CONFIG
  * - General configuration for this project
  */
-let config = {}
+let config = {
+  tinypng: {
+    apikey: 'fGe2JxyVjUw2Uw27WAXd3R9Xj_t1T61v'
+  }
+}
 
 
 /**
@@ -44,8 +50,18 @@ let minh = () => {
       .pipe(usemin({
         css: [function () { return minifyCss(); }, function () { return rev(); }],
         html: [function () { return htmlmin({ collapseWhitespace: true, removeComments: true }); }],
-        js: [function () { return uglify({ 'negate_iife': false }); }, function () { return rev(); }],
-        inlinejs: [uglify()],
+        js: [function () {
+          return babili({
+            mangle: {
+              keepClassNames: true
+            }
+          });
+        }, function () { return rev(); }],
+        inlinejs: [babili({
+          mangle: {
+            keepClassNames: true
+          }
+        })],
         inlinecss: [minifyCss(), 'concat']
       }))
       .pipe(gulp.dest(config.buildPath))
@@ -74,7 +90,7 @@ let build = async () => {
       dest: '/'
     },
     {
-      glob: ['./src/img/**/*'],
+      glob: ['./src/img/logo.png'],
       dest: '/img/'
     },
     {
@@ -82,19 +98,34 @@ let build = async () => {
       dest: '/js/'
     },
     {
+      glob: ['./src/js/friendlyFeedClient.js'],
+      dest: '/'
+    },
+    {
       glob: ['./src/css/**/*'],
       dest: '/css/'
     }
   ]);
 
-  // Stage and Prod have single JS and CSS so we can clean up the unminified files
+  // Prod has single JS and CSS so we can clean up the unminified files
   if (config.target !== 'dev') {
     await minh();
     // Cleanup temporary CSS created prior to minification (JS will happen after UglifyJS supports ES6)
-    c = await del([config.buildPath + '/css']);
+    c = await del([config.buildPath + '/js', config.buildPath + '/css']);
   }
   return c;
 }
+
+
+/**
+ * Compress png and jpgs. Calling manually for now until I can figure the optimal way to ensure I 
+ * stay below 500 calls per month
+ */
+gulp.task('tinypng', () => {
+  gulp.src(['./src/img/**/*.jpg', './src/img/**/*.png'])
+    .pipe(tinypng(config.tinypng.apikey))
+    .pipe(gulp.dest(config.buildPath + '/img'));
+});
 
 
 /**
@@ -140,13 +171,11 @@ gulp.task('help', function () {
   Usage: gulp <command> [options]
     
     where <command> is one of:
-      build:   Clean, compile views, copy resources, optionally minify and clean up
-      deploy:  Synchronize the local target (e.g. dev, stage or prod) with AWS S3
-      watch:   Starts a watcher on src and updates any changes to build/dev
+      build:   Clean, compile views, copy resources, optionally minify and clean up                     
+               options:
+                 --target [dev] | release
 
-    options:
-      --target [dev] | stage | prod
-  
+      watch:   Starts a watcher on src and updates any changes to build/dev
   `)
 });
 
@@ -164,11 +193,8 @@ gulp.task('default', ['help']);
 (function () {
   config.target = util.env.target || 'dev';
   switch (config.target.toLowerCase()) {
-    case 'stage':
-      config.buildPath = 'build/stage/';
-      break;
-    case 'prod':
-      config.buildPath = 'build/prod/';
+    case 'release':
+      config.buildPath = 'build/release/';
       break;
     default:
       config.buildPath = 'build/dev/';

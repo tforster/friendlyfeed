@@ -1,34 +1,30 @@
-"use strict";
-/* global chrome */
+/**
+ * SettingsClass
+ * - Implements the ability to save, read and synchronize extension settings
+ * 
+ */
+'use strict';
+/* global SettingsClass chrome */
 
 class SettingsClass {
-  constructor() {
-    let self = this;
-
-    this.data = {
-    };
-
-    return self;
-  }
-
 
   /**
    * 
    * 
+   * @static
+   * @param {object} defaultSettings 
    * @returns a Promise containing the restored settings or defaults if no settings have been saved yet
-   * 
    * @memberof SettingsClass
    */
-  restore() {
-    let self = this;
-    return new Promise(function (resolve, reject) {
-      let obj = self.data;
-      chrome.storage.sync.get(obj, function (data) {
-        if (chrome.runtime.error) {
-          reject(chrome.runtime.error)
+  static restore(defaultSettings) {
+    return new Promise((resolve, reject) => {
+      chrome.storage.sync.get(defaultSettings, (settings) => {
+        let err = chrome.runtime.error
+        if (err) {
+          console.error('Error restoring settings:', err);
+          reject(err);
         } else {
-          self.data = data;
-          resolve(data);
+          resolve(settings);
         }
       });
     });
@@ -38,21 +34,21 @@ class SettingsClass {
   /**
    * 
    * 
+   * @static
+   * @param {object} settings 
    * @returns a Promise containing the saved settings
-   * 
    * @memberof SettingsClass
    */
-  save() {
-    let self = this;
-
-    return new Promise(function (resolve, reject) {
-      let obj = self.data;
-      chrome.storage.sync.set(obj, function () {
-        if (chrome.runtime.error) {
-          reject(chrome.runtime.error)
+  static save(settings) {
+    return new Promise((resolve, reject) => {
+      chrome.storage.sync.set(settings, () => {
+        let err = chrome.runtime.error
+        if (err) {
+          console.error('Error restoring settings:', err);
+          reject(err);
         }
         else {
-          resolve(obj)
+          resolve(settings);
         }
       });
     });
@@ -62,23 +58,31 @@ class SettingsClass {
   /**
    * 
    * 
-   * @returns a Promise with the empty default values
-   * 
+   * @static
+   * @param {object} defaultSettings 
+   * @returns a Promise containing an empty object or defaultSettings if it was passed in. Does not save the defaultSettings
    * @memberof SettingsClass
    */
-  clear() {
-    return new Promise(function (resolve, reject) {
-      chrome.storage.local.clear(function () {
-        var error = chrome.runtime.lastError;
-        if (error) {
-          reject('clear error', error);
+  static clear(defaultSettings) {
+    let self = this;
+    return new Promise((resolve, reject) => {
+      chrome.storage.sync.clear(() => {
+        let err = chrome.runtime.error
+        if (err) {
+          console.error('Error restoring settings:', err);
+          reject(err);
         } else {
-          // Todo: call restore so we return defaults
-          resolve();
+          if (defaultSettings) {
+            self.save(defaultSettings)
+              .then(settings => {
+                resolve(settings);
+              })
+          }
+          else {
+            resolve({});
+          }
         }
       });
     });
-
   }
 }
-  

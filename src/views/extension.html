@@ -2,7 +2,7 @@
 <html id="extension">
 
 <head>
-  <title>FriendlyFeed</title>
+  <title>FriendlyFeed Popup</title>
   <!-- build:css /app.css -->
   <link rel="stylesheet" href="./css/app.css"></link>
   <!-- endbuild -->
@@ -10,12 +10,39 @@
 
 <body>
   <div class="container">
-    <h1>A Chrome extension to make Facebooks News Feed more Friendly</h1>
-    <p>There is no useful UI at this time.</p>
+    <h1>FriendlyFeed</h1>
+    <p>A Chrome extension to make Facebooks News Feed more Friendly</p>
+    
+    <h2>Settings</h2>
+
+    <input type="checkbox" id="automaticallyRedirect"></input>
+    <label for="automaticallyRedirect">Automatically redirect to "Most Recent" News Feed</label>
+    <br/>
+
+    <input type="checkbox" id="hideSponsoredPosts"></input>
+    <label for="hideSponsoredPosts">Hide sponsored posts</label>
+    <br/>
+
+    <input type="checkbox" id="hidePeopleYouMayKnow"></input>
+    <label for="hidePeopleYouMayKnow">Hide "People you may know"</label>
+    <br/><br/>
+
+    <input type="button" id="btnSave" value="Save" />
+    <input type="button" id="btnReset" value="Reset" />
+
+    <h2>Tips</h2>
+
+    <ul>
+      <li>Use the J and K keys to move up and down your feed</li>
+    </ul>
+
+    <p><a href="" id="options">Options...</a></p>
   </div>
 
+  <!-- build:js /app.js -->
   <script src="/js/settingsClass.js"></script>
   <script src="/js/app.js"></script>
+  <!-- endbuild -->
 </body>
 
 </html>
